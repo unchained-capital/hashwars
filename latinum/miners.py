@@ -1,5 +1,5 @@
 from .agent import PoissonAgent
-from .blockchain import Block, BlockSequence, BlockSequenceTransmission
+from .blockchain import Block, BlockchainTransmission
 from .state import current_time, add_agent, log
 
 class Miners(PoissonAgent):
@@ -11,22 +11,24 @@ class Miners(PoissonAgent):
         self.difficulty_premium = difficulty_premium
 
     def log_advance(self, duration):
-        log("AGENT {} ADVANCE w/ {} BLOCKCHAIN {} {}".format(self.id, [transmission.id for transmission in self.transmissions_received.values()], self.blockchain.sequence.height, self.blockchain.sequence.weight))
+        log("AGENT {} ADVANCE w/ {} BLOCKCHAIN {} {}".format(self.id, [transmission.id for transmission in self.transmissions_received.values()], self.blockchain.height, self.blockchain.weight))
 
     def mean_time_between_actions(self):
-        return ((self.blockchain.difficulty.value * self.difficulty_premium) / self.hashrate)
+        return ((self.blockchain.difficulty * self.difficulty_premium) / self.hashrate)
 
     def react(self, transmission):
-        if isinstance(transmission, (BlockSequenceTransmission,)):
-            self.blockchain.add(transmission.sequence)
+        if isinstance(transmission, (BlockchainTransmission,)):
+            self.blockchain.merge(transmission.blockchain)
         PoissonAgent.react(self, transmission)
 
     def act(self):
         block = Block(
-            "{}:{}".format(self.id, Block.new_id()), 
-            self.blockchain.sequence.tip.id,
-            (self.blockchain.difficulty.value * self.difficulty_premium))
-        if self.blockchain.add(BlockSequence(block)):
+            id="{}:{}".format(self.id, Block.new_id()), 
+            previous=self.blockchain.tip,
+            difficulty=(self.blockchain.difficulty * self.difficulty_premium),
+            time=current_time(),
+        )
+        if self.blockchain.add(block):
             self.blocks_found.append(block)
             log("MINER {} MINED {}".format(self.id, block.id))
 
@@ -35,10 +37,9 @@ class Miners(PoissonAgent):
 
     def run_post_actions(self):
         if len(self.blocks_found) == 0: return
-        sequence = BlockSequence(*self.blocks_found)
-        transmission = BlockSequenceTransmission(
-            "{} (transmission)".format(sequence),
+        transmission = BlockchainTransmission(
+            "{} (transmission)".format(self.blockchain),
             self,
             current_time(),
-            sequence)
+            self.blockchain)
         add_agent(transmission)

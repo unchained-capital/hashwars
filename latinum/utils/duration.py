@@ -1,12 +1,9 @@
-from random import choice, random
-from string import ascii_lowercase
-
-def random_string(length=10):
-    return ''.join(choice(ascii_lowercase) for i in range(length))
+from random import random
 
 class Duration(object):
 
     def __init__(self, start, end):
+        assert end > start,  "First parameter `start` should be less than second parameter `end`"
         self.start = start
         self.end = end
 
