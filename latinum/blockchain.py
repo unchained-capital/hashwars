@@ -1,5 +1,6 @@
 from .agent import Transmission
 from .utils import random_string
+from .state import log
 
 class Block():
     
@@ -69,7 +70,7 @@ class BlockSequence():
         for block_id in sequence.heights:
             self._add_block(sequence.blocks[block_id])
 
-    def uncle_lastblocks(self, number):
+    def uncle_last_blocks(self, number):
         for block in self.get_last_blocks(number):
             self._uncle_block(block)
 
@@ -103,13 +104,12 @@ class BlockSequence():
 
     def get_last_blocks(self, number):
         self._assert_valid_height(number)
-        return (self.get_block(id) for id in reversed(self.heights)[:number])
+        return (self.get_block(id) for id in list(reversed(self.heights))[:number])
 
-    @property
-    def id(self):
+    def __str__(self):
         height = len(self)
         if height == 1:
-            return '{} [empty]'.format(self.genesis.id)
+            return '{}'.format(self.genesis.id)
         elif height == 2:
             return '{} -> {}'.format(self.genesis.id, self.tip.id)
         elif height == 3:
@@ -135,23 +135,33 @@ class Blockchain():
         self.sequence = BlockSequence(genesis_block)
         self.block_time = block_time
         self.difficulty = Difficulty(self, block_time=block_time, readjustment_period=difficulty_readjustment_period, initial_value=initial_difficulty, max_change_factor=max_difficulty_change_factor)
+        self.last_difficulty_adjustment = None
 
     def add(self, sequence):
-        if not self.sequence.has_block(sequence.previous): return False
+        #log("BLOCKCHAIN {} CONSIDERING {} WITH {}".format(self.id, sequence, self.sequence.heights))
+        if not self.sequence.has_block(sequence.previous): 
+            log("BLOCKCHAIN {} REJECT {} UNKNOWN TIP {}".format(self.id, sequence, sequence.previous))
+            return False
         previous_block = self.sequence.get_block(sequence.previous)
         assert previous_block is not None
         if previous_block.id != self.sequence.tip.id:
-            if sequence.weight > self.sequence.weight_after_height(previous_block.height):
+            if sequence.weight >= self.sequence.weight_after_height(previous_block.height):
                 uncled_blocks = self.sequence.height - previous_block.height
+                log("BLOCKCHAIN {} UNCLING {} BLOCKS DUE TO {}".format(self.id, uncled_blocks, sequence))
                 self.sequence.uncle_last_blocks(uncled_blocks)
             else:
-                return
+                log("BLOCKCHAIN {} REJECT {} WEIGHT {} < {}".format(self.id, sequence, sequence.weight, self.sequence.weight_after_height(previous_block.height)))
+                return False
+        log("BLOCKCHAIN {} ADD {}".format(self.id, sequence))
         self.sequence.add(sequence)
+        if (self.last_difficulty_adjustment is not None) and (len(self.sequence) - self.last_difficulty_adjustment) >= self.difficulty.readjustment_period:
+            self.difficulty.readjust()
+        return True
 
 class BlockSequenceTransmission(Transmission):
     
-    def __init__(self, id,  source, transmission_time, sequence, speed=1.0):
-        Transmission.__init__(self, id, source, transmission_time, speed=speed)
+    def __init__(self, id,  source_agent, transmission_time, sequence, speed=1.0):
+        Transmission.__init__(self, id, source_agent, transmission_time, speed=speed)
         self.sequence = sequence
 
 
@@ -175,7 +185,7 @@ class Difficulty():
         #
         # so new_difficulty = (target block time * old_difficulty) / (observed block time)
         # 
-        blocks = self.blockchain.get_last_blocks(self.readjustment_period)
+        blocks = self.blockchain.sequence.get_last_blocks(self.readjustment_period)
         block_gaps = [(blocks[index+1].time - block.time) for index, block in enumerate(blocks[:-1])]
         observed_block_time = mean(block_gaps)
         old_difficulty = self.value
@@ -186,3 +196,4 @@ class Difficulty():
         elif difficulty_change_ratio < self.inverse_max_change_factor:
             difficulty_change_ratio = self.inverse_max_change_factor
         self.value = old_difficulty * difficulty_change_ratio
+        log("BLOCKCHAIN {} DIFF. ADJ. {} => {}".format(old_difficulty, self.value))

@@ -17,9 +17,9 @@ def advance_time(amount):
     global _TIME
     duration_end = _TIME + amount
     duration = Duration(_TIME, duration_end)
-    log("TIME => {}".format(duration_end))
-    for agent_id in list(all_agent_ids()):
-        agent = get_agent(agent_id)
+    log("TIME => {} AGENTS {}".format(duration_end, len(_AGENTS)))
+    agents = [get_agent(agent_id) for agent_id in list(all_agent_ids())]
+    for agent in reversed(sorted(agents, key=lambda agent: agent.priority)):
         agent.advance(duration)
     _TIME = duration_end
 

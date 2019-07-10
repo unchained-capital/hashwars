@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, random
 from string import ascii_lowercase
 
 def random_string(length=10):
@@ -21,3 +21,6 @@ class Duration(object):
         if time < self.start: return False
         if time > self.end: return False
         return True
+
+    def random_time(self):
+        return self.start + (self.length * random())
