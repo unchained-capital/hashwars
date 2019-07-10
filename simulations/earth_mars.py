@@ -43,7 +43,7 @@ def single_run(distance, hashrate_ratio):
     earth_miners_blocks = []
     earth_miners_mars_blocks = []
     earth_miners_earth_blocks = []
-    simulation_length = 6          # hours
+    simulation_length = 12          # hours
     max_time = (3600 * simulation_length)
 
     while current_time() < max_time:
@@ -133,33 +133,40 @@ def plot_single_run(
 
     plt.show()
 
-def plot_many_runs(distances, hashrate_ratios):
+def plot_many_runs(distances, hashrate_ratios, runs_per_sample):
     results = []
     for distance in distances:
         results_for_distance = []
         for hashrate_ratio in hashrate_ratios:
-            print("Running distance={} hashrate_ratio={}".format(distance, hashrate_ratio))
-            (distance,
-            mars_miners,
-            earth_miners,
-            times, 
-            mars_miners_blocks,
-            mars_miners_mars_blocks,
-            mars_miners_earth_blocks,
-            earth_miners_blocks,
-            earth_miners_mars_blocks,
-            earth_miners_earth_blocks) = single_run(distance, hashrate_ratio)
-            
-            mars_blocks_ratio = mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1]+mars_miners_earth_blocks[-1])
-            results_for_distance.append(mars_blocks_ratio)
+            results_for_distance_and_hashrate = []
+            for run in range(runs_per_sample):
+                print("Running distance={} hashrate_ratio={} run={}".format(distance, hashrate_ratio, run))
+                (distance,
+                mars_miners,
+                earth_miners,
+                times, 
+                mars_miners_blocks,
+                mars_miners_mars_blocks,
+                mars_miners_earth_blocks,
+                earth_miners_blocks,
+                earth_miners_mars_blocks,
+                earth_miners_earth_blocks) = single_run(distance, hashrate_ratio)
+
+                mars_blocks_ratio = mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1]+mars_miners_earth_blocks[-1])
+                results_for_distance_and_hashrate.append(mars_blocks_ratio)
+            results_for_distance.append(array(results_for_distance_and_hashrate).mean())
         results.append(results_for_distance)
 
     results = array(results).transpose()
 
     fig, ax = plt.subplots(nrows=1)
-    ax.contourf(distances, hashrate_ratios, results, cmap="coolwarm")
+    mappable = ax.contourf(distances, hashrate_ratios, results, cmap="coolwarm")
+    plt.colorbar(mappable)
     plt.show()
 
 plot_many_runs(
-    arange(1, 3 * earth_mars_distance_in_light_seconds, earth_mars_distance_in_light_seconds/4),
-    arange(1.0, 5.0, 0.5))
+    [1, 600, 1200, 1800],
+    [1.0, 1.05, 1.1, 1.25, 1.5, 2.0, 3.0, 5.0, 10.0],
+    25)
+
+#single_run(600.0, 1.1)

@@ -1,5 +1,4 @@
 from typing import Optional
-from copy import copy, deepcopy
 
 from numpy import mean
 
@@ -59,15 +58,15 @@ class Blockchain():
     def copy(self) -> 'Blockchain':
         blockchain = Blockchain(
             id=self.id, 
-            genesis_block=self.genesis_block.copy(include_height=True),
-            block_time=copy(self.block_time),
-            difficulty_readjustment_period=copy(self.difficulty_readjustment_period),
-            initial_difficulty=copy(self.difficulty),
-            max_difficulty_change_factor=copy(self.max_difficulty_change_factor))
-        blockchain.blocks = deepcopy(self.blocks)
-        blockchain.heights = deepcopy(self.heights)
-        blockchain.height  = copy(self.height)
-        blockchain.weight = copy(self.weight)
+            genesis_block=self.genesis_block,
+            block_time=self.block_time,
+            difficulty_readjustment_period=self.difficulty_readjustment_period,
+            initial_difficulty=self.difficulty,
+            max_difficulty_change_factor=self.max_difficulty_change_factor)
+        blockchain.blocks = {block_id:block for (block_id, block) in self.blocks.items()}
+        blockchain.heights = [block_id for block_id in self.heights]
+        blockchain.height  = self.height
+        blockchain.weight = self.weight
         return blockchain
 
     def merge(self, other: 'Blockchain') -> bool:
@@ -80,11 +79,11 @@ class Blockchain():
             return False
 
         log("BLOCKCHAIN {} ACCEPT {}".format(self, other))
-        self.blocks = deepcopy(other.blocks)
-        self.heights = deepcopy(other.heights)
-        self.height = copy(other.height)
-        self.weight = copy(other.weight)
-        self.difficulty = copy(other.difficulty)
+        self.blocks = {block_id:block for (block_id, block) in other.blocks.items()}
+        self.heights = [block_id for block_id in other.heights]
+        self.height = other.height
+        self.weight = other.weight
+        self.difficulty = other.difficulty
         return True
         
     def add(self, block: Block) -> bool:
