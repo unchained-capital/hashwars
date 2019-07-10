@@ -11,22 +11,23 @@ class Agent(object):
         self.active = active
         self.priority = 0
 
+    def __str__(self):
+        return self.id
+
     def log_advance(self, duration):
         log("AGENT {} ADVANCE w/ {}".format(self.id, [transmission.id for transmission in self.transmissions_received.values()]))
 
     def advance(self, duration):
         self.log_advance(duration)
-        self.run_pre_actions()
         for action in sorted(
                 chain(
                     self.actions_for(duration),
                     list(self.transmissions_received.items())),
                 key=lambda action: action[0]):
             if action[1] is not None:
-                self.react(action[1])
+                self.react(action[0], action[1])
             else:
-                self.act()
-        self.run_post_actions()
+                self.act(action[0])
 
     def actions_for(self, duration):
         return []
@@ -34,19 +35,12 @@ class Agent(object):
     def distance_to(self, location):
         return abs(self.location - location)
 
-    def receive(self, transmission, time):
+    def receive(self, time, transmission):
         log("AGENT {} RECEIVE {}".format(self.id, transmission.id))
         self.transmissions_received[time] = transmission
 
-    def act(self):
+    def act(self, time):
         pass
 
-    def run_pre_actions(self):
-        pass
-
-    def run_post_actions(self):
-        pass
-
-    def react(self, transmission):
+    def react(self, time, transmission):
         self.transmissions_received = {time:t for time,t in self.transmissions_received.items() if t != transmission}
-

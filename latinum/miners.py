@@ -1,6 +1,6 @@
 from .agent import PoissonAgent
 from .blockchain import Block, BlockchainTransmission
-from .state import current_time, add_agent, log
+from .state import add_agent, log
 
 class Miners(PoissonAgent):
     
@@ -16,30 +16,23 @@ class Miners(PoissonAgent):
     def mean_time_between_actions(self):
         return ((self.blockchain.difficulty * self.difficulty_premium) / self.hashrate)
 
-    def react(self, transmission):
-        if isinstance(transmission, (BlockchainTransmission,)):
-            self.blockchain.merge(transmission.blockchain)
-        PoissonAgent.react(self, transmission)
-
-    def act(self):
+    def act(self, time):
         block = Block(
             id="{}:{}".format(self.id, Block.new_id()), 
             previous=self.blockchain.tip,
             difficulty=(self.blockchain.difficulty * self.difficulty_premium),
-            time=current_time(),
+            time=time,
         )
         if self.blockchain.add(block):
-            self.blocks_found.append(block)
             log("MINER {} MINED {}".format(self.id, block.id))
+            transmission = BlockchainTransmission(
+                "{} (transmission)".format(self.blockchain),
+                self,
+                time,
+                self.blockchain.copy())
+            add_agent(transmission)
 
-    def run_pre_actions(self):
-        self.blocks_found = []
-
-    def run_post_actions(self):
-        if len(self.blocks_found) == 0: return
-        transmission = BlockchainTransmission(
-            "{} (transmission)".format(self.blockchain),
-            self,
-            current_time(),
-            self.blockchain)
-        add_agent(transmission)
+    def react(self, time,  transmission):
+        if isinstance(transmission, (BlockchainTransmission,)):
+            self.blockchain.merge(transmission.blockchain)
+        PoissonAgent.react(self, time, transmission)

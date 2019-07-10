@@ -29,11 +29,11 @@ class Transmission(Agent):
             if agent == self.source_agent: continue
             travel_time = agent.distance_to(self.source) / self.speed
             reception_time = self.transmission_time + travel_time
-            agent.receive(self, reception_time)
+            agent.receive(reception_time, self)
 
         self.extent = new_extent
         if self.extent[0] < boundary[0] and self.extent[1] > boundary[1]:
             remove_agent(self.id)
 
-    def receive(self, transmission, time):
+    def receive(self, time, transmission):
         pass

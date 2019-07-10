@@ -51,3 +51,14 @@ def remove_agent(id):
 def agents_located_in(a, b):
     assert b > a
     return (agent for agent in _AGENTS.values() if agent.location >= a and agent.location <= b)
+
+def reset_time():
+    global _TIME
+    _TIME = 0
+
+def reset_agents():
+    _AGENTS = {}
+
+def reset_simulation():
+    reset_agents()
+    reset_time()

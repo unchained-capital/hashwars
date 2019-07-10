@@ -23,6 +23,10 @@ class Block():
     def weight(self) -> float:
         return self.difficulty
 
-    def copy(self) -> 'Block':
-        # Don't include height
-        return Block(id=self.id, previous=self.previous, difficulty=self.difficulty, time=self.time)
+    def copy(self, include_height=False) -> 'Block':
+        return Block(
+            id=self.id, 
+            previous=self.previous, 
+            difficulty=self.difficulty, 
+            time=self.time,
+            height=(self.height if include_height else None))

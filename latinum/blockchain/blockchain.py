@@ -1,4 +1,5 @@
 from typing import Optional
+from copy import copy, deepcopy
 
 from numpy import mean
 
@@ -49,11 +50,25 @@ class Blockchain():
         )
 
     def __str__(self):
-        return "{{{} | {} -- {} : {} {}}}".format(self.id, self.genesis_block.id, self.tip.id, self.weight, self.height)
+        return "{{{} | {} => {} | {} {}}}".format(self.id, self.tip.id, self.tip.previous.id if self.tip.previous else '.', self.weight, self.height)
 
     @property
     def tip(self) -> Block:
         return self.blocks[self.heights[-1]]
+
+    def copy(self) -> 'Blockchain':
+        blockchain = Blockchain(
+            id=self.id, 
+            genesis_block=self.genesis_block.copy(include_height=True),
+            block_time=copy(self.block_time),
+            difficulty_readjustment_period=copy(self.difficulty_readjustment_period),
+            initial_difficulty=copy(self.difficulty),
+            max_difficulty_change_factor=copy(self.max_difficulty_change_factor))
+        blockchain.blocks = deepcopy(self.blocks)
+        blockchain.heights = deepcopy(self.heights)
+        blockchain.height  = copy(self.height)
+        blockchain.weight = copy(self.weight)
+        return blockchain
 
     def merge(self, other: 'Blockchain') -> bool:
         log("BLOCKCHAIN {} MERGING {}".format(self, other))
@@ -64,11 +79,12 @@ class Blockchain():
             log("BLOCKCHAIN {} REJECT {} AS LIGHTER CHAIN".format(self, other))
             return False
 
-        self.blocks = other.blocks
-        self.heights = other.heights
-        self.height = other.height
-        self.weight = other.weight
-        self.difficulty = other.difficulty
+        log("BLOCKCHAIN {} ACCEPT {}".format(self, other))
+        self.blocks = deepcopy(other.blocks)
+        self.heights = deepcopy(other.heights)
+        self.height = copy(other.height)
+        self.weight = copy(other.weight)
+        self.difficulty = copy(other.difficulty)
         return True
         
     def add(self, block: Block) -> bool:
@@ -82,12 +98,14 @@ class Blockchain():
             else:
                 log("BLOCKCHAIN {} REJECT {} UNKNOWN TIP {}".format(self, block, block.previous.id))
             return False
+
+        log("BLOCKCHAIN {} ACCEPT {}".format(self, block))
         self.blocks[block.id] = block
         self.heights.append(block.id)
         self.height += 1
         self.weight += block.difficulty
-        if self.height % self.difficulty_readjustment_period == 0:
-            self.readjust_difficulty()
+        # if self.height % self.difficulty_readjustment_period == 0:
+        #     self.readjust_difficulty()
         return True
 
     def readjust_difficulty(self):
