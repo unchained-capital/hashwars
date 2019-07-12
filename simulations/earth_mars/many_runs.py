@@ -1,5 +1,7 @@
 from sys import argv, stderr, stdout
 from pickle import dumps
+from concurrent.futures import ProcessPoolExecutor
+
 from numpy import arange, array
 
 from simulations.earth_mars.single_run import single_run
@@ -14,33 +16,41 @@ def _parse_array(s):
     else:
         return array([float(n) for n in s.split(',')])
 
+def _single_run(params):
+    distance, hashrate_ratio = params
+    stderr.write("Running distance={} hashrate_ratio={}\n".format(distance, hashrate_ratio))
+    (distance,
+    mars_miners,
+    earth_miners,
+    times, 
+    mars_miners_blocks,
+    mars_miners_mars_blocks,
+    mars_miners_earth_blocks,
+    earth_miners_blocks,
+    earth_miners_mars_blocks,
+    earth_miners_earth_blocks) = single_run(hours, distance, hashrate_ratio)
+    mars_blocks_ratio = mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1]+mars_miners_earth_blocks[-1])
+    return (distance, hashrate_ratio, mars_blocks_ratio)
+
 def many_runs(hours, runs_per_sample, distances, hashrate_ratios):
-    mars_blocks_ratios = []
+    runs = []
     for distance in distances:
-        mars_blocks_ratios_for_distance = []
         for hashrate_ratio in hashrate_ratios:
-            mars_blocks_ratios_for_distance_and_hashrate = []
             for run in range(runs_per_sample):
-                print("Running distance={} hashrate_ratio={} run={}".format(distance, hashrate_ratio, run))
-                (distance,
-                mars_miners,
-                earth_miners,
-                times, 
-                mars_miners_blocks,
-                mars_miners_mars_blocks,
-                mars_miners_earth_blocks,
-                earth_miners_blocks,
-                earth_miners_mars_blocks,
-                earth_miners_earth_blocks) = single_run(hours, distance, hashrate_ratio)
-
-                mars_blocks_ratio = mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1]+mars_miners_earth_blocks[-1])
-                mars_blocks_ratios_for_distance_and_hashrate.append(mars_blocks_ratio)
-            mars_blocks_ratios_for_distance.append(array(mars_blocks_ratios_for_distance_and_hashrate).mean())
-        mars_blocks_ratios.append(mars_blocks_ratios_for_distance)
-
-    mars_blocks_ratios = array(mars_blocks_ratios).transpose()
-    return (distances, hashrate_ratios, mars_blocks_ratios)
-
+                runs.append((distance, hashrate_ratio))
+    with ProcessPoolExecutor() as executor:
+        results = list(executor.map(_single_run, runs))
+        mars_blocks_ratios = []
+        for distance in distances:
+            mars_blocks_ratios_at_distance = []
+            results_at_distance = [result for result in results if result[0] == distance]
+            for hashrate_ratio in hashrate_ratios:
+                mars_blocks_ratios_at_distance_and_hashrate_ratio = []
+                results_at_distance_and_hashrate_ratio = [result for result in results_at_distance if result[1] == hashrate_ratio]
+                mars_blocks_ratio_at_distance_and_hashrate_ratio = array([result[2] for result in results_at_distance_and_hashrate_ratio]).mean()
+                mars_blocks_ratios_at_distance.append(mars_blocks_ratio_at_distance_and_hashrate_ratio)
+            mars_blocks_ratios.append(mars_blocks_ratios_at_distance)
+        return (distances, hashrate_ratios, array(mars_blocks_ratios).transpose())
 
 if __name__ == '__main__':
     if len(argv) < 5:

@@ -15,6 +15,9 @@ class BlockchainLaunch(Transmission):
     pass
 
 def single_run(simulation_length, distance, hashrate_ratio):
+    simulation_length = int(simulation_length)
+    distance = float(distance)
+    hashrate_ratio = float(hashrate_ratio)
     reset_simulation()
     set_spatial_boundary(-1, distance + 1)
 

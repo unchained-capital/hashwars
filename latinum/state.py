@@ -1,4 +1,5 @@
 from os import environ
+from sys import stderr
 
 from .utils import Duration
 
@@ -10,7 +11,7 @@ _AGENTS = {}
 
 def log(string):
     if environ.get('DEBUG'):
-        print("{}\t{}".format(_TIME, string))
+        stderr.write("{}\t{}\n".format(_TIME, string))
 
 def current_time():
     return _TIME
