@@ -1,4 +1,4 @@
-from latinum.agent import Transmission
+from hashwars.agent import Transmission
 
 class BlockSequence():
 

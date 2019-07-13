@@ -41,8 +41,12 @@ else
 endif
 
 $(VENV_DIR):
-	$(PYTHON3) -m venv --prompt='latinum' $(VENV_DIR)
+	$(PYTHON3) -m venv --prompt='hashwars' $(VENV_DIR)
 
 lint:
-	-$(FLAKE8) latinum
-	-$(MYPY) latinum/
+	-$(FLAKE8) hashwars
+	-$(MYPY) hashwars/
+
+clean:
+	find hashwars test -name '*.pyc' -delete
+	find hashwars test -name '__pycache__' -delete

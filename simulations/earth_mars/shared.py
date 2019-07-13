@@ -1,4 +1,4 @@
-from latinum import *
+from hashwars import *
 
 class EarthMiners(Miners):
     

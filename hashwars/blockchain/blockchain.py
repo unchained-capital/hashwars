@@ -2,8 +2,8 @@ from typing import Optional
 
 from numpy import mean
 
-from latinum.state import log
-from latinum.agent import Agent, Transmission
+from hashwars.state import log
+from hashwars.agent import Agent, Transmission
 
 from .block import Block
 from .difficulty import Difficulty

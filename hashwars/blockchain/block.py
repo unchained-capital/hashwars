@@ -1,6 +1,6 @@
 from typing import Optional
 
-from latinum.utils import random_string
+from hashwars.utils import random_string
 
 class Block():
     

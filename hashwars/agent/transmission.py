@@ -1,6 +1,6 @@
 from .base import Agent
 
-from latinum.state import log, get_spatial_boundary, agents_located_in, remove_agent
+from hashwars.state import log, get_spatial_boundary, agents_located_in, remove_agent
 
 class Transmission(Agent):
 

@@ -1,6 +1,6 @@
 from itertools import chain
 
-from latinum.state import log
+from hashwars.state import log
 
 class Agent(object):
 

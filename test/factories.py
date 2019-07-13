@@ -1,4 +1,4 @@
-from latinum import *
+from hashwars import *
 
 FIXTURES = {
     'genesis_block_id': 'fixture-genesis_block',
