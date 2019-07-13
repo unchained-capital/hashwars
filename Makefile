@@ -41,7 +41,7 @@ else
 endif
 
 $(VENV_DIR):
-	$(PYTHON3) -m venv --prompt='(latinum) ' $(VENV_DIR)
+	$(PYTHON3) -m venv --prompt='latinum' $(VENV_DIR)
 
 lint:
 	-$(FLAKE8) latinum
