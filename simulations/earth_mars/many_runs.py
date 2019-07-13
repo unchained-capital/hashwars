@@ -1,6 +1,7 @@
 from sys import argv, stderr, stdout
 from pickle import dumps
 from concurrent.futures import ProcessPoolExecutor
+from random import shuffle
 
 from numpy import arange, array
 
@@ -19,6 +20,7 @@ def _parse_array(s):
 def _single_run(params):
     distance, hashrate_ratio = params
     stderr.write("Running distance={} hashrate_ratio={}\n".format(distance, hashrate_ratio))
+    stderr.flush()
     (distance,
     mars_miners,
     earth_miners,
@@ -33,11 +35,18 @@ def _single_run(params):
     return (distance, hashrate_ratio, mars_blocks_ratio)
 
 def many_runs(hours, runs_per_sample, distances, hashrate_ratios):
+    stderr.write("HOURS: {}\n".format(hours))
+    stderr.write("RUNS PER POINT: {}\n".format(runs_per_sample))
+    stderr.write("DISTANCES: {} - {} ({} total)\n".format(distances[0], distances[-1], len(distances)))
+    stderr.write("HASHRATE RATIOS: {} - {} ({} total)\n".format(hashrate_ratios[0], hashrate_ratios[-1], len(hashrate_ratios)))
     runs = []
     for distance in distances:
         for hashrate_ratio in hashrate_ratios:
             for run in range(runs_per_sample):
                 runs.append((distance, hashrate_ratio))
+    stderr.write("TOTAL RUNS: {}\n".format(len(runs)))
+    stderr.flush()
+    shuffle(runs)
     with ProcessPoolExecutor() as executor:
         results = list(executor.map(_single_run, runs))
         mars_blocks_ratios = []
