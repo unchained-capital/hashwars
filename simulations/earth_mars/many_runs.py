@@ -5,7 +5,7 @@ from random import shuffle
 
 from numpy import arange, array
 
-from simulations.earth_mars.single_run import single_run
+from simulations.earth_mars.single_run import *
 
 # 0.1,0.4,0.5,0.8,1.0,2.0,3.0,4.0
 #

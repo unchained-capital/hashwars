@@ -1,18 +1,7 @@
 from sys import argv, stderr, stdout
 from pickle import dumps
 
-from latinum import *
-
-class EarthMiners(Miners):
-    
-    def react(self, time,  transmission):
-        if isinstance(transmission, (BlockchainLaunch,)):
-            self.active = True
-            log("MINER {} ACTIVATING".format(self.id))
-        Miners.react(self, time, transmission)
-
-class BlockchainLaunch(Transmission):
-    pass
+from simulations.earth_mars.shared import *
 
 def single_run(simulation_length, distance, hashrate_ratio):
     simulation_length = int(simulation_length)
