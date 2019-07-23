@@ -3,19 +3,23 @@ from pickle import dumps
 from concurrent.futures import ProcessPoolExecutor
 from random import shuffle
 
-from numpy import arange, array
+from numpy import arange, array, concatenate
 
 from simulations.earth_mars.single_run import *
 
 # 0.1,0.4,0.5,0.8,1.0,2.0,3.0,4.0
 #
 # [0.1,4.0,0.1]
-def _parse_array(s):
-    if s.startswith('['):
-        start, stop, step = s[1:-1].split(',')
-        return arange(float(start), float(stop), float(step))
+def _parse_array(spec):
+    if spec.startswith('['):
+        subarray_specs = spec[1:-1].split('][')
+        values = array([])
+        for subarray_spec in subarray_specs:
+            start, stop, step = subarray_spec.split(',')
+            values = concatenate((values, arange(float(start), float(stop), float(step))))
+        return values
     else:
-        return array([float(n) for n in s.split(',')])
+        return array([float(n) for n in spec.split(',')])
 
 def _single_run(params):
     distance, hashrate_ratio = params
@@ -47,8 +51,12 @@ def many_runs(hours, runs_per_sample, distances, hashrate_ratios):
     stderr.write("TOTAL RUNS: {}\n".format(len(runs)))
     stderr.flush()
     shuffle(runs)
+    stderr.write("Opening process pool executor...\n")
+    stderr.flush()
     with ProcessPoolExecutor() as executor:
         results = list(executor.map(_single_run, runs))
+        stderr.write("Obtained Results\n")
+        stderr.flush()
         mars_blocks_ratios = []
         for distance in distances:
             mars_blocks_ratios_at_distance = []
