@@ -64,10 +64,10 @@ def many_runs(hours, runs_per_sample, distances, hashrate_ratios):
             for hashrate_ratio in hashrate_ratios:
                 mars_blocks_ratios_at_distance_and_hashrate_ratio = []
                 results_at_distance_and_hashrate_ratio = [result for result in results_at_distance if result[1] == hashrate_ratio]
-                mars_blocks_ratio_at_distance_and_hashrate_ratio = array([result[2] for result in results_at_distance_and_hashrate_ratio]).mean()
-                mars_blocks_ratios_at_distance.append(mars_blocks_ratio_at_distance_and_hashrate_ratio)
+                mars_blocks_ratios_at_distance_and_hashrate_ratio = array([result[2] for result in results_at_distance_and_hashrate_ratio])
+                mars_blocks_ratios_at_distance.append(mars_blocks_ratios_at_distance_and_hashrate_ratio)
             mars_blocks_ratios.append(mars_blocks_ratios_at_distance)
-        return (distances, hashrate_ratios, array(mars_blocks_ratios).transpose())
+        return (distances, hashrate_ratios, array(mars_blocks_ratios))
 
 if __name__ == '__main__':
     if len(argv) < 5:
