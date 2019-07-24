@@ -29,10 +29,8 @@ def _single_run(params):
     mars_miners,
     earth_miners,
     times, 
-    mars_miners_blocks,
     mars_miners_mars_blocks,
     mars_miners_earth_blocks,
-    earth_miners_blocks,
     earth_miners_mars_blocks,
     earth_miners_earth_blocks) = single_run(hours, distance, hashrate_ratio)
     mars_blocks_ratio = mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1]+mars_miners_earth_blocks[-1])

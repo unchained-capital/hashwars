@@ -9,9 +9,28 @@ _SPACE = [0, 1]
 
 _AGENTS = {}
 
+_LOG = []
+
+_LOG_ID = None
+
 def log(string):
+    _LOG.append((_TIME, string))
     if environ.get('DEBUG'):
-        stderr.write("{}\t{}\n".format(_TIME, string))
+        _print_log_line(_TIME, string)
+
+def set_log_id(string):
+    global _LOG_ID
+    _LOG_ID = string
+
+def print_log():
+    for time, string in _LOG:
+        _print_log_line(time, string)
+
+def _print_log_line(time, string):
+    stderr.write("{}{}\t{}\n".format(
+        "{}: ".format(_LOG_ID) if _LOG_ID is not None else "",
+        time,
+        string))
 
 def current_time():
     return _TIME
@@ -57,9 +76,16 @@ def reset_time():
     global _TIME
     _TIME = 0
 
+def reset_log():
+    global _LOG, _LOG_ID
+    _LOG.clear()
+    _LOG_ID = None
+
 def reset_agents():
+    global _AGENTS
     _AGENTS = {}
 
 def reset_simulation():
     reset_agents()
     reset_time()
+    reset_log()

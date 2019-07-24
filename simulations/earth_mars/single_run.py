@@ -1,13 +1,16 @@
 from sys import argv, stderr, stdout
 from pickle import dumps
 
+from hashwars import random_string, log, print_log, set_log_id
 from simulations.earth_mars.shared import *
 
 def single_run(simulation_length, distance, hashrate_ratio):
     simulation_length = int(simulation_length)
     distance = float(distance)
     hashrate_ratio = float(hashrate_ratio)
+    run_id = random_string()
     reset_simulation()
+    set_log_id(run_id)
     set_spatial_boundary(-1, distance + 1)
 
     genesis_block = Block("genesis-block", None, difficulty=600, height=1)
@@ -27,10 +30,8 @@ def single_run(simulation_length, distance, hashrate_ratio):
     add_agent(muskcoin_launch)
 
     times = []
-    mars_miners_blocks = []
     mars_miners_mars_blocks = []
     mars_miners_earth_blocks = []
-    earth_miners_blocks = []
     earth_miners_mars_blocks = []
     earth_miners_earth_blocks = []
     max_time = (3600 * simulation_length)
@@ -41,20 +42,16 @@ def single_run(simulation_length, distance, hashrate_ratio):
         times.append(current_time())
 
         if mars_miners.blockchain.height > 1:
-            mars_miners_blocks.append(mars_miners.blockchain.height - 1)
             mars_miners_mars_blocks.append(len([block_id for block_id in mars_miners.blockchain.heights if mars_miners.id in block_id]))
             mars_miners_earth_blocks.append(len([block_id for block_id in mars_miners.blockchain.heights if earth_miners.id in block_id]))
         else:
-            mars_miners_blocks.append(0)
             mars_miners_mars_blocks.append(0)
             mars_miners_earth_blocks.append(0)
 
         if earth_miners.blockchain.height > 1:
-            earth_miners_blocks.append(earth_miners.blockchain.height - 1)
             earth_miners_mars_blocks.append(len([block_id for block_id in earth_miners.blockchain.heights if mars_miners.id in block_id]))
             earth_miners_earth_blocks.append(len([block_id for block_id in earth_miners.blockchain.heights if earth_miners.id in block_id]))
         else:
-            earth_miners_blocks.append(0)
             earth_miners_mars_blocks.append(0)
             earth_miners_earth_blocks.append(0)
 
@@ -63,10 +60,8 @@ def single_run(simulation_length, distance, hashrate_ratio):
         mars_miners,
         earth_miners,
         times, 
-        mars_miners_blocks,
         mars_miners_mars_blocks,
         mars_miners_earth_blocks,
-        earth_miners_blocks,
         earth_miners_mars_blocks,
         earth_miners_earth_blocks,
     )

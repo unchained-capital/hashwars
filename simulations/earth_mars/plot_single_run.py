@@ -11,10 +11,8 @@ def plot_single_run(
         mars_miners,
         earth_miners,
         times, 
-        mars_miners_blocks,
         mars_miners_mars_blocks,
         mars_miners_earth_blocks,
-        earth_miners_blocks,
         earth_miners_mars_blocks,
         earth_miners_earth_blocks,
         ):
@@ -25,7 +23,7 @@ def plot_single_run(
 
     fig, (mars_blocks, earth_blocks) = plt.subplots(nrows=2, sharex=True)
 
-    mars_blocks.set_title("On Mars")
+    mars_blocks.set_title("On Mars (Distance: {}, Final {:0.4f})".format(distance, mars_miners_mars_blocks[-1]/(mars_miners_mars_blocks[-1] + mars_miners_earth_blocks[-1])))
     mars_blocks.stackplot(times, mars_miners_mars_blocks, mars_miners_earth_blocks, labels=['Mined on Mars', 'Mined on Earth'], colors=['red', 'green'], baseline='zero')
     mars_blocks.legend(loc='upper left')
     mars_blocks.set_ylim(0, max_blocks)

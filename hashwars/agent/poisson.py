@@ -8,11 +8,12 @@ class PoissonAgent(Agent):
 
     MAX_FACTORIAL = 1000 # boot time cost
     FACTORIALS = [factorial(k) for k in range(MAX_FACTORIAL)]
+    MAX_ACTIONS = 10
 
-    def __init__(self, id, location, max_actions_per_advance=10, active=True):
+    def __init__(self, id, location, max_actions_per_advance=None, active=True):
         Agent.__init__(self, id, location, active=active)
-        assert max_actions_per_advance <= self.MAX_FACTORIAL
-        self.max_actions_per_advance = max_actions_per_advance
+        self.max_actions_per_advance = (max_actions_per_advance if max_actions_per_advance is not None else self.MAX_ACTIONS)
+        assert self.max_actions_per_advance <= self.MAX_FACTORIAL
     
     def actions_for(self, duration):
         actions = []
