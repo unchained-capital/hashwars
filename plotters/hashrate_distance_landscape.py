@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
-from numpy import array, mean, var
+from numpy import array, mean, std
 
 from hashwars import write_plot
 
@@ -18,9 +18,9 @@ def hashrate_distance_landscape(results, output_file, argv):
     args = _parser.parse_args(argv)
 
     minority_weights_ratios_means = mean(minority_weights_ratios, axis=2)
-    minority_weights_ratios_vars = var(minority_weights_ratios, axis=2)
+    minority_weights_ratios_stds = std(minority_weights_ratios, axis=2)
 
-    fig, (ax_means, ax_vars) = plt.subplots(nrows=2, sharex=True)
+    fig, (ax_means, ax_stds) = plt.subplots(nrows=2, sharex=True)
     fig.suptitle('Fraction Weight Mined on Minority')
 
     if args.samples:
@@ -38,12 +38,12 @@ def hashrate_distance_landscape(results, output_file, argv):
     if args.samples:
         ax_means.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
 
-    ax_vars.set_title("Variance")
-    ax_vars.set_ylabel('Majority/Minority Hashrate')
-    ax_vars.set_xlabel("Seconds")
-    vars_mappable = ax_vars.contourf(distances, hashrate_ratios, minority_weights_ratios_vars.transpose(), cmap="Greys")
-    plt.colorbar(vars_mappable, ax=ax_vars)
+    ax_stds.set_title("Standard Deviation")
+    ax_stds.set_ylabel('Majority/Minority Hashrate')
+    ax_stds.set_xlabel("Seconds")
+    stds_mappable = ax_stds.contourf(distances, hashrate_ratios, minority_weights_ratios_stds.transpose(), cmap="Greys")
+    plt.colorbar(stds_mappable, ax=ax_stds)
     if args.samples:
-        ax_vars.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
+        ax_stds.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
 
     write_plot(output_file)
