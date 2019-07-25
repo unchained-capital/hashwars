@@ -78,6 +78,13 @@ def _launch(params, mode):
             majority_miners_minority_weight.append(0)
             majority_miners_majority_weight.append(0)
 
+    notify("FINISHED {}: H={} D={} HR={:0.4f} Minority={:0.4f}".format(
+        run_id,
+        args.hours,
+        int(distance),
+        hashrate_ratio,
+        minority_miners_minority_weight[-1] / (minority_miners_minority_weight[-1] + minority_miners_majority_weight[-1])
+    ))
     return (
         distance,
         hashrate_ratio,
