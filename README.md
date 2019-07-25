@@ -30,12 +30,13 @@ $ single-static-binary-simulation miner_launch 720 4 | plot blockchain_launch_hi
 
 ## Simulator Core
 
-Hash Wars is very simple at present:
+Hash Wars is very simple:
 
 * Time is modeled as a real number (`float`) but the simulation advances by discrete amounts of time.
 * Space is one-dimensional.
 * Miners are located at different locations with differing amounts of hashrate and their own local copies of a blockchain
-* Miners mine independently and communication between them is limited by the finite speed of light
+* Miners produce blocks in accordance with their hashrate, the blockchain's difficulty, and (naive) Poisson statistics
+* Blocks found by miners propagate through the simulation at a finite speed (of light)
 * Each miner's blockchain obeys the consensus rules around heaviest chain, uncling, difficulty rebalancing, &c.
 
 See the code in [`hashwars`](hashwars).
