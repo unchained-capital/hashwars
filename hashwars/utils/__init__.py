@@ -24,10 +24,10 @@ def write_plot(output_file):
     else:
         plt.show()
 
-# 0.1,0.4,0.5,0.8,1.0,2.0,3.0,4.0
-#
-# [0.1,4.0,0.1]
-def parse_array_spec(spec):
+# 0.1,0.5,0.8,1.0,1.2 => array([0.1, 0.5, 0.8, 1.0, 1.2])
+# [1,5,1] => array([1.0, 2.0, 3.0, 4.0])
+# [0.1,1,0.3][1,5,1] => array([0.1, 0.4, 0.7, 1.0, 2.0, 3.0, 4.0])
+def array_glob(spec):
     if spec.startswith('['):
         subarray_specs = spec[1:-1].split('][')
         values = array([])

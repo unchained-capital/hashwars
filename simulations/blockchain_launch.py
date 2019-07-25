@@ -1,16 +1,34 @@
 from argparse import ArgumentParser
 
-from hashwars import random_string, notify, set_log_id
-from .shared import *
+from hashwars import *
 
 _DEFAULT_HOURS = 6
 _DEFAULT_STEP = 60
+_DEFAULT_PREMIUM = 1.0
 
 _parser = ArgumentParser(description="The launch of a blockchain.")
 _parser.add_argument("--hours", help="Number of hours to simulate", type=int, default=_DEFAULT_HOURS)
 _parser.add_argument("--step", help="Step length in seconds", type=int, default=_DEFAULT_STEP)
+_parser.add_argument("--premium", help="Hash premium", type=float, default=_DEFAULT_PREMIUM)
+
+class MajorityMiners(Miners):
+    
+    def react(self, time,  transmission):
+        if (not self.active) and isinstance(transmission, (BlockchainLaunch,)):
+            self.active = True
+            log("MINER {} ACTIVATING".format(self.id))
+        Miners.react(self, time, transmission)
+
+class BlockchainLaunch(Transmission):
+    pass
 
 def blockchain_launch(params):
+    return _launch(params, 'blockchain')
+
+def miner_launch(params):
+    return _launch(params, 'miner')
+
+def _launch(params, mode):
     distance, hashrate_ratio, argv = params
     distance = float(distance)
     hashrate_ratio = float(hashrate_ratio)
@@ -23,18 +41,17 @@ def blockchain_launch(params):
 
     genesis_block = Block("genesis", None, difficulty=600, height=1)
     minority_blockchain = Blockchain("minority", genesis_block)
-    minority_miners  = Miners("minority-miners", 0, minority_blockchain, initial_hashrate=1.0)
-
-    genesis_block_mined = BlockchainLaunch("genesis-mined", minority_miners, current_time())
-
     majority_blockchain = Blockchain("majority", genesis_block)
-
-    majority_miners = MajorityMiners("majority-miners", distance, majority_blockchain, initial_hashrate=hashrate_ratio, difficulty_premium=1.0, active=False)
+    minority_miners  = Miners("minority-miners", 0, minority_blockchain, initial_hashrate=1.0)
+    majority_miners = MajorityMiners("majority-miners", distance, majority_blockchain, initial_hashrate=hashrate_ratio, difficulty_premium=args.premium, active=(mode == 'miner'))
 
     add_agent(minority_miners)
     add_agent(majority_miners)
-    add_agent(genesis_block_mined)
 
+    if mode == 'blockchain':
+        genesis_block_mined = BlockchainLaunch("genesis-mined", minority_miners, current_time())
+        add_agent(genesis_block_mined)
+    
     times = []
     minority_miners_minority_weight = []
     minority_miners_majority_weight = []
@@ -72,6 +89,12 @@ def blockchain_launch(params):
     )
 
 def blockchain_launch_minority_weight_ratio(params):
+    return _minority_weight_ratio(blockchain_launch(params))
+
+def miner_launch_minority_weight_ratio(params):
+    return _minority_weight_ratio(miner_launch(params))
+
+def _minority_weight_ratio(results):
     (distance,
      hashrate_ratio,
      times, 
@@ -79,5 +102,6 @@ def blockchain_launch_minority_weight_ratio(params):
      minority_miners_majority_weight,
      majority_miners_minority_weight,
      majority_miners_majority_weight
-    ) = blockchain_launch(params)
+    ) = results
     return (distance, hashrate_ratio, minority_miners_minority_weight[-1] / (minority_miners_minority_weight[-1] + minority_miners_majority_weight[-1]))
+

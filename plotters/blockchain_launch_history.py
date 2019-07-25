@@ -5,8 +5,6 @@ from numpy import array
 
 from hashwars import write_plot
 
-from simulations.shared import *
-
 _parser = ArgumentParser(description="Plot of a blockchain launch's history.")
 
 def blockchain_launch_history(results, output_file, argv):
