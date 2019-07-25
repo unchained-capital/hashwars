@@ -12,8 +12,14 @@ def random_string(length=10):
     return ''.join(choice(ascii_lowercase) for i in range(length))
 
 def write_results(results, output_file):
-    with (output_file or stdout.buffer) as output:
-        output.write(dumps(results))
+    output = dumps(results)
+    if output_file:
+        output_file.write(output)
+    else:
+        if stdout.isatty():
+            notify("ERROR: Attempting to write binary results data to STDOUT")
+        else:
+            stdout.buffer.write(output)
 
 def read_results(input_file):
     return loads((input_file or stdin.buffer).read())
