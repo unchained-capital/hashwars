@@ -42,15 +42,15 @@ def single_run(simulation_length, distance, hashrate_ratio):
         times.append(current_time())
 
         if mars_miners.blockchain.height > 1:
-            mars_miners_mars_blocks.append(len([block_id for block_id in mars_miners.blockchain.heights if mars_miners.id in block_id]))
-            mars_miners_earth_blocks.append(len([block_id for block_id in mars_miners.blockchain.heights if earth_miners.id in block_id]))
+            mars_miners_mars_blocks.append(sum([block.weight for block in mars_miners.blockchain.blocks.values() if mars_miners.id in block.id]))
+            mars_miners_earth_blocks.append(sum([block.weight for block in mars_miners.blockchain.blocks.values() if earth_miners.id in block.id]))
         else:
             mars_miners_mars_blocks.append(0)
             mars_miners_earth_blocks.append(0)
 
         if earth_miners.blockchain.height > 1:
-            earth_miners_mars_blocks.append(len([block_id for block_id in earth_miners.blockchain.heights if mars_miners.id in block_id]))
-            earth_miners_earth_blocks.append(len([block_id for block_id in earth_miners.blockchain.heights if earth_miners.id in block_id]))
+            earth_miners_mars_blocks.append(sum([block.weight for block in earth_miners.blockchain.blocks.values() if mars_miners.id in block.id]))
+            earth_miners_earth_blocks.append(sum([block.weight for block in earth_miners.blockchain.blocks.values() if earth_miners.id in block.id]))
         else:
             earth_miners_mars_blocks.append(0)
             earth_miners_earth_blocks.append(0)

@@ -27,7 +27,7 @@ def plot_single_run(
     mars_blocks.stackplot(times, mars_miners_mars_blocks, mars_miners_earth_blocks, labels=['Mined on Mars', 'Mined on Earth'], colors=['red', 'green'], baseline='zero')
     mars_blocks.legend(loc='upper left')
     mars_blocks.set_ylim(0, max_blocks)
-    mars_blocks.set_ylabel('Counts')
+    mars_blocks.set_ylabel('Weight')
     mars_blocks.axvline(x=distance, color='gray', linestyle='--', linewidth=0.5)
     mars_blocks.axvline(x=(2 * distance), color='gray', linestyle='--', linewidth=0.5)
     mars_ratio = mars_blocks.twinx()
@@ -39,7 +39,7 @@ def plot_single_run(
     earth_blocks.stackplot(times, earth_miners_mars_blocks, earth_miners_earth_blocks, labels=['Mined on Mars', 'Mined on Earth'], colors=['red', 'green'])
     earth_blocks.legend(loc='upper left')
     earth_blocks.set_ylim(0, max_blocks)
-    earth_blocks.set_ylabel('Counts')
+    earth_blocks.set_ylabel('Weight')
     earth_blocks.axvline(x=distance, color='gray', linestyle='--', linewidth=0.5)
     earth_blocks.axvline(x=(2 * distance), color='gray', linestyle='--', linewidth=0.5)
     # earth_blocks.set_xticks(

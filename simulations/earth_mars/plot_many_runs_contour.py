@@ -15,7 +15,7 @@ def plot_contour(distances, hashrate_ratios, mars_blocks_ratios):
     mars_blocks_ratios_vars = var(mars_blocks_ratios, axis=2)
 
     fig, (ax_means, ax_vars) = plt.subplots(nrows=2, sharex=True)
-    fig.suptitle('Fraction Blocks Mined on Mars')
+    fig.suptitle('Fraction Weight Mined on Mars')
 
     sample_distances = []
     sample_hashrate_ratios = []
