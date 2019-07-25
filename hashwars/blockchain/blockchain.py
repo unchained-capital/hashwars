@@ -6,7 +6,6 @@ from hashwars.state import log
 from hashwars.agent import Agent, Transmission
 
 from .block import Block
-from .difficulty import Difficulty
 
 class Blockchain():
 
