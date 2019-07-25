@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser, FileType
+
+from hashwars import many_static_binary_simulations, write_results
+
+_DEFAULT_COUNT = 2
+
+_parser = ArgumentParser(description="Run many static binary simulations.")
+_parser.add_argument("-o", "--output", type=FileType('wb'), help="write to FILE", metavar="FILE")
+_parser.add_argument("-c", "--count", help="run COUNT simulations at each point", metavar="COUNT", type=int, default=_DEFAULT_COUNT)
+_parser.add_argument("name", help="simulator function", metavar="NAME")
+_parser.add_argument("distances", help="distances between agents", metavar="DISTANCES")
+_parser.add_argument("hashrate_ratios", help="attacker/defender hashrate ratios", metavar="RATIOS")
+
+if __name__ == '__main__':
+
+    args, simulator_argv = _parser.parse_known_args()
+
+    import simulations
+
+    results = many_static_binary_simulations(simulations, args.name, args.count, args.distances, args.hashrate_ratios, simulator_argv)
+    write_results(results, args.output)

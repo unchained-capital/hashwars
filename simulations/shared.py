@@ -1,6 +1,6 @@
 from hashwars import *
 
-class EarthMiners(Miners):
+class MajorityMiners(Miners):
     
     def react(self, time,  transmission):
         if isinstance(transmission, (BlockchainLaunch,)):

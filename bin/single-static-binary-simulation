@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+from argparse import ArgumentParser, FileType
+
+from hashwars import single_static_binary_simulation, write_results
+
+_parser = ArgumentParser(description="Run a single static binary simulation.")
+_parser.add_argument("-o", "--output", type=FileType('wb'), help="write to FILE", metavar="FILE")
+_parser.add_argument("name", help="simulator function", metavar="NAME")
+_parser.add_argument("distance", help="distance between agents (in light seconds)", metavar="DISTANCE", type=int)
+_parser.add_argument("hashrate_ratio", help="attacker/defender hashrate ratio", metavar="RATIO", type=float)
+
+if __name__ == '__main__':
+
+    args, simulator_argv = _parser.parse_known_args()
+
+    import simulations
+    
+    results = single_static_binary_simulation(simulations, args.name, args.distance, args.hashrate_ratio, simulator_argv)
+    write_results(results, args.output)

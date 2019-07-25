@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+
+from sys import stderr
+from argparse import ArgumentParser, FileType
+
+from hashwars import plot
+
+_parser = ArgumentParser(description="Plot a simulation result.")
+_parser.add_argument("-i", "--input", type=FileType('rb'), help="read from FILE", metavar="FILE")
+_parser.add_argument("-o", "--output", type=FileType('wb'), help="write to FILE", metavar="FILE")
+_parser.add_argument("name", help="plotter function", metavar="NAME")
+
+if __name__ == '__main__':
+
+    args, plotter_argv = _parser.parse_known_args()
+    import plotters
+    
+    results = plot(plotters, args.name, args.input, args.output, plotter_argv)
