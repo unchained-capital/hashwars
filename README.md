@@ -157,11 +157,10 @@ def weight_mined_on_mars_over_time(results, output_file, argv):
     write_plot(output_file)
 ```
 
-Once this plotter is in the `plotters` directory, you can run it
+Once this plotter is in the `plotters` directory, and assuming you ran
+the `earth_vs_mars` simulator example above, you can run it
 
 ```
-# Run once at a distance of 720 light seconds
-# and a Earth/Mars hashrate ratio of 4
 $ plot weight_mined_on_mars_over_time --input /tmp/earth_vs_mars.dat
 ```
 
