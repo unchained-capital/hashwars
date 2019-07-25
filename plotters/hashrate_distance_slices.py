@@ -5,8 +5,6 @@ from numpy import array, mean, var, convolve, ones
 
 from hashwars import write_plot
 
-from simulations.shared import *
-
 _DEFAULT_WINDOW = 5
 
 def _comma_separated(sequence):

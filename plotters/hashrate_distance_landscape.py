@@ -5,8 +5,6 @@ from numpy import array, mean, var
 
 from hashwars import write_plot
 
-from simulations.shared import *
-
 _parser = ArgumentParser(description="Plot of the hashrate/distance landscape.")
 _parser.add_argument("-s", "--samples", action='store_true', help="show points sampled")
 
