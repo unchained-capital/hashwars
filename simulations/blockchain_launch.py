@@ -39,7 +39,7 @@ def _launch(params, mode):
     set_log_id(run_id)
     set_spatial_boundary(-1, distance + 1)
 
-    genesis_block = Block("genesis", None, difficulty=600, height=1)
+    genesis_block = Block("genesis", None, difficulty=600, height=1, time=current_time())
     minority_blockchain = Blockchain("minority", genesis_block)
     majority_blockchain = Blockchain("majority", genesis_block)
     minority_miners  = Miners("minority-miners", 0, minority_blockchain, initial_hashrate=1.0)
