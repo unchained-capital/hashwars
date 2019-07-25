@@ -50,3 +50,8 @@ lint:
 clean:
 	find hashwars test -name '*.pyc' -delete
 	find hashwars test -name '__pycache__' -delete
+
+test:
+	$(PYTEST)
+
+.PHONY: test
