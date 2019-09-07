@@ -1,9 +1,9 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
-from numpy import array, mean, var, convolve, ones, sqrt
+from numpy import array, mean, var
 
-from hashwars import write_plot, COLORS
+from hashwars import write_plot, COLORS, moving_average
 
 _DEFAULT_WIDTH = 12
 _DEFAULT_HEIGHT = 8
@@ -18,9 +18,6 @@ _parser.add_argument("-c", "--colors", type=_comma_separated, help="use these co
 _parser.add_argument("-X", "--figure-width", help="figure width in inches", metavar="WIDTH", type=float, default=_DEFAULT_WIDTH)
 _parser.add_argument("-Y", "--figure-height", help="figure height in inches", metavar="HEIGHT", type=float, default=_DEFAULT_HEIGHT)
 _parser.add_argument("-Z", "--resolution", help="resolution in DPI", metavar="DPI", type=float, default=_DEFAULT_DPI)
-
-def _moving_average(series, window):
-    return convolve(series, ones(window), 'valid') / window
 
 def hashrate_distance_slices(results, output_file, argv):
     (
@@ -49,15 +46,13 @@ def hashrate_distance_slices(results, output_file, argv):
     ax.set_ylim(0, 1.01)
     ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.5)
 
-    window = (args.window if args.window is not None else int(sqrt(len(hashrate_fractions))))
-    if window < 2: window = 2
-    smoothed_hashrate_fractions = _moving_average(hashrate_fractions, window)
+    smoothed_hashrate_fractions = moving_average(hashrate_fractions, args.window)
 
     colors = list(args.colors)
     # ax.plot(smoothed_hashrate_fractions, smoothed_hashrate_fractions, linestyle='--', color='gray', linewidth=0.5, label='0s')
     for index, distance in enumerate(distances):
         #ax.errorbar(hashrate_ratios, minority_weights_ratios_means[index], yerr=minority_weights_ratios_vars[index], label="{}s".format(distance))
-        smoothed_minority_weights_ratios_means = list(reversed(_moving_average(minority_weights_ratios_means[index], window)))
+        smoothed_minority_weights_ratios_means = list(reversed(moving_average(minority_weights_ratios_means[index], args.window)))
         color = (COLORS[colors[index]] if len(colors) > index else None)
         label = "{}s".format(int(distance))
         if len(colors) > index:

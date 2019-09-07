@@ -1,5 +1,6 @@
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
+from numpy import sqrt, convolve, ones
 
 from .utils import notify, read_results
 
@@ -36,3 +37,10 @@ def write_plot(fig, output_file):
         plt.savefig(output_file, facecolor=fig.get_facecolor())
     else:
         plt.show()
+
+def moving_average(series, window=None):
+    if window is None:
+        window = int(sqrt(len(series)))
+    if window < 2:
+        window = 2
+    return convolve(series, ones(window), 'valid') / window

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from numpy import mean, std, where, full, array
 
-from hashwars import write_plot, array_glob
+from hashwars import write_plot, array_glob, COLORS, moving_average
 
 _DEFAULT_LEVELS = 10
 _DEFAULT_WIDTH = 12
@@ -22,6 +22,7 @@ _parser.add_argument("-l", "--levels", help="use this count or these explicit le
 _parser.add_argument("-X", "--figure-width", help="figure width in inches", metavar="WIDTH", type=float, default=_DEFAULT_WIDTH)
 _parser.add_argument("-Y", "--figure-height", help="figure height in inches", metavar="HEIGHT", type=float, default=_DEFAULT_HEIGHT)
 _parser.add_argument("-Z", "--resolution", help="resolution in DPI", metavar="DPI", type=float, default=_DEFAULT_DPI)
+_parser.add_argument("-W", "--weights", help="block weights to trace", type=array_glob, default=[], metavar="ARRAY")
 
 def _format_percent(value, index):
     return '{:,.0%}'.format(value)
@@ -74,13 +75,31 @@ def hashrate_distance_landscape(results, output_file, argv):
         levels,
         cmap="coolwarm",
         vmin=0,
-        vmax=1)
+        # vmax=1/(1+hashrate_ratios[-1]),
+    )
     means_colorbar = plt.colorbar(means_landscape, ax=ax_means, format=ticker.FuncFormatter(_format_percent))
     if args.samples:
         ax_means.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
     ax_means.set_yticklabels(['{:,.0%}'.format(y) for y in ax_means.get_yticks()])
     if args.means_only:
         ax_means.set_xlabel(xlabel)
+
+    smoothed_distances = moving_average(distances)
+    for target_weight_ratio in args.weights:
+        hashrate_fractions_to_reach_weight = []
+        for distance_index, distance in enumerate(distances):
+            hashrate_fraction_to_reach_weight = None
+            for hashrate_ratio_index, minority_weight_ratio in enumerate(minority_weights_ratios_means[distance_index]):
+                hashrate_ratio = hashrate_ratios[hashrate_ratio_index]
+                hashrate_fraction = 1/(1+hashrate_ratio)
+                if minority_weight_ratio <= target_weight_ratio:
+                    hashrate_fraction_to_reach_weight = hashrate_fraction
+                    break
+            if hashrate_fraction_to_reach_weight is None:
+                hashrate_fraction_to_reach_weight = 1/(1+hashrate_ratios[-1])
+            hashrate_fractions_to_reach_weight.append(hashrate_fraction_to_reach_weight)
+        ax_means.plot(smoothed_distances, moving_average(hashrate_fractions_to_reach_weight), color=COLORS['background'], linewidth=1)
+        ax_means.text(x=distances[0], y=hashrate_fractions_to_reach_weight[0], s="{}".format(target_weight_ratio), color=COLORS['background'])
 
     if not args.means_only:
         ax_stds = axes[1]
