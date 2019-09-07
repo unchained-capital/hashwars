@@ -44,3 +44,6 @@ def moving_average(series, window=None):
     if window < 2:
         window = 2
     return convolve(series, ones(window), 'valid') / window
+
+def format_percent(value, index=None, places=0):
+    return '{{:,.{}%}}'.format(places).format(value)

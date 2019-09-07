@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from numpy import array, mean, var
 
-from hashwars import write_plot, COLORS, moving_average
+from hashwars import write_plot, COLORS, moving_average, format_percent
 
 _DEFAULT_WIDTH = 12
 _DEFAULT_HEIGHT = 8
@@ -37,14 +37,17 @@ def hashrate_distance_slices(results, output_file, argv):
         figsize=(args.figure_width, args.figure_height),
         dpi=args.resolution)
     ax.set_title('Blockchain Launch')
-    ax.set_xlabel('Defender Relative Hashrate')
-    ax.set_ylabel('Fraction Weight Mined by Defender')
+    ax.set_xlabel('Defender Hashrate')
+    ax.set_ylabel('Weight Mined by Defender')
     ax.set_xlim(hashrate_fractions[0], hashrate_fractions[-1])
     if hashrate_fractions[0] < 0.5 and hashrate_fractions[-1] > 0.5:
         # ax.set_xscale('log')
         ax.axvline(x=0.5, color='gray', linestyle='--', linewidth=0.5)
     ax.set_ylim(0, 1.01)
     ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.5)
+
+    ax.set_xticklabels([format_percent(x) for x in ax.get_xticks()])
+    ax.set_yticklabels([format_percent(y) for y in ax.get_yticks()])
 
     smoothed_hashrate_fractions = moving_average(hashrate_fractions, args.window)
 

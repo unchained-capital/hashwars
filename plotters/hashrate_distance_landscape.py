@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from numpy import mean, std, where, full, array
 
-from hashwars import write_plot, array_glob, COLORS, moving_average
+from hashwars import write_plot, array_glob, COLORS, moving_average, format_percent
 
 _DEFAULT_LEVELS = 10
 _DEFAULT_WIDTH = 12
@@ -23,9 +23,6 @@ _parser.add_argument("-X", "--figure-width", help="figure width in inches", meta
 _parser.add_argument("-Y", "--figure-height", help="figure height in inches", metavar="HEIGHT", type=float, default=_DEFAULT_HEIGHT)
 _parser.add_argument("-Z", "--resolution", help="resolution in DPI", metavar="DPI", type=float, default=_DEFAULT_DPI)
 _parser.add_argument("-W", "--weights", help="block weights to trace", type=array_glob, default=[], metavar="ARRAY")
-
-def _format_percent(value, index):
-    return '{:,.0%}'.format(value)
 
 def hashrate_distance_landscape(results, output_file, argv):
     (
@@ -58,8 +55,8 @@ def hashrate_distance_landscape(results, output_file, argv):
     levels = (args.levels if len(args.levels) > 1 else int(args.levels[0]))
 
     ax_means = (axes if args.means_only else axes[0])
-    title = 'Fraction blockchain weight mined by pool'
-    ylabel = 'Pool Hashrate Fraction'
+    title = 'Block weight mined by pool'
+    ylabel = 'Pool Hashrate'
     xlabel = 'Pool Distance (light seconds)'
     if args.means_only:
         ax_means.set_title(title)
@@ -77,7 +74,7 @@ def hashrate_distance_landscape(results, output_file, argv):
         vmin=0,
         # vmax=1/(1+hashrate_ratios[-1]),
     )
-    means_colorbar = plt.colorbar(means_landscape, ax=ax_means, format=ticker.FuncFormatter(_format_percent))
+    means_colorbar = plt.colorbar(means_landscape, ax=ax_means, format=ticker.FuncFormatter(format_percent))
     if args.samples:
         ax_means.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
     ax_means.set_yticklabels(['{:,.0%}'.format(y) for y in ax_means.get_yticks()])
@@ -98,8 +95,15 @@ def hashrate_distance_landscape(results, output_file, argv):
             if hashrate_fraction_to_reach_weight is None:
                 hashrate_fraction_to_reach_weight = 1/(1+hashrate_ratios[-1])
             hashrate_fractions_to_reach_weight.append(hashrate_fraction_to_reach_weight)
-        ax_means.plot(smoothed_distances, moving_average(hashrate_fractions_to_reach_weight), color=COLORS['background'], linewidth=1)
-        ax_means.text(x=distances[0], y=hashrate_fractions_to_reach_weight[0], s="{}".format(target_weight_ratio), color=COLORS['background'])
+        smoothed_hashrate_fractions_to_reach_weight = moving_average(hashrate_fractions_to_reach_weight)
+        ax_means.plot(smoothed_distances, smoothed_hashrate_fractions_to_reach_weight, color=COLORS['background'], linewidth=1)
+        ax_means.text(
+            x=(smoothed_distances[-1] * 1.01), 
+            y=(smoothed_hashrate_fractions_to_reach_weight[-1] * 1), 
+            s=format_percent(target_weight_ratio, places=(1 if target_weight_ratio < 0.01 else 0)), 
+            color=COLORS['background'],
+        )
+        
 
     if not args.means_only:
         ax_stds = axes[1]
