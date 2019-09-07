@@ -1,18 +1,23 @@
 from argparse import ArgumentParser
 
 import matplotlib.pyplot as plt
-from numpy import array, mean, var, convolve, ones
+from numpy import array, mean, var, convolve, ones, sqrt
 
-from hashwars import write_plot
+from hashwars import write_plot, COLORS
 
-_DEFAULT_WINDOW = 5
+_DEFAULT_WIDTH = 12
+_DEFAULT_HEIGHT = 8
+_DEFAULT_DPI = 100
 
 def _comma_separated(sequence):
     return map(lambda element: element.strip(), (sequence or "").strip().split(","))
 
 _parser = ArgumentParser(description="Plot of a blockchain launch's history.")
-_parser.add_argument("-w", "--window", type=int, default=_DEFAULT_WINDOW, help="smooth this many points", metavar="POINTS")
-_parser.add_argument("-l", "--labels", type=_comma_separated, help="smooth this many points", metavar="LABEL1,LABEL2,...", default=[])
+_parser.add_argument("-w", "--window", type=int, help="smooth this many points", metavar="POINTS")
+_parser.add_argument("-c", "--colors", type=_comma_separated, help="use these colors names", metavar="COLOR1,COLOR2,...", default=[])
+_parser.add_argument("-X", "--figure-width", help="figure width in inches", metavar="WIDTH", type=float, default=_DEFAULT_WIDTH)
+_parser.add_argument("-Y", "--figure-height", help="figure height in inches", metavar="HEIGHT", type=float, default=_DEFAULT_HEIGHT)
+_parser.add_argument("-Z", "--resolution", help="resolution in DPI", metavar="DPI", type=float, default=_DEFAULT_DPI)
 
 def _moving_average(series, window):
     return convolve(series, ones(window), 'valid') / window
@@ -26,27 +31,44 @@ def hashrate_distance_slices(results, output_file, argv):
 
     args = _parser.parse_args(argv)
 
+    hashrate_fractions = list(reversed(1/(1+hashrate_ratios)))
     minority_weights_ratios_means = mean(minority_weights_ratios, axis=2)
     minority_weights_ratios_vars = var(minority_weights_ratios, axis=2)
 
-    fig, ax = plt.subplots(nrows=1)
+    fig, ax = plt.subplots(
+        nrows=1, 
+        figsize=(args.figure_width, args.figure_height),
+        dpi=args.resolution)
     ax.set_title('Blockchain Launch')
-    ax.set_xlabel('Majority/Minority Hashrate Ratio')
-    ax.set_ylabel('Fraction Weight Mined by Minority')
-    if hashrate_ratios[0] < 1 and hashrate_ratios[-1] > 1:
-        ax.set_xscale('log')
-        ax.axvline(x=1.0, color='gray', linestyle='--', linewidth=0.5)
-    #ax.set_ylim(0, 1)
+    ax.set_xlabel('Defender Relative Hashrate')
+    ax.set_ylabel('Fraction Weight Mined by Defender')
+    ax.set_xlim(hashrate_fractions[0], hashrate_fractions[-1])
+    if hashrate_fractions[0] < 0.5 and hashrate_fractions[-1] > 0.5:
+        # ax.set_xscale('log')
+        ax.axvline(x=0.5, color='gray', linestyle='--', linewidth=0.5)
+    ax.set_ylim(0, 1.01)
+    ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.5)
 
-    smoothed_hashrate_ratios = _moving_average(hashrate_ratios, args.window)
-    ax.plot(smoothed_hashrate_ratios, 1/(1 + smoothed_hashrate_ratios), linestyle='--', color='gray', linewidth=0.5, label='0s (adjacent)')
-    
+    window = (args.window if args.window is not None else int(sqrt(len(hashrate_fractions))))
+    if window < 2: window = 2
+    smoothed_hashrate_fractions = _moving_average(hashrate_fractions, window)
+
+    colors = list(args.colors)
+    # ax.plot(smoothed_hashrate_fractions, smoothed_hashrate_fractions, linestyle='--', color='gray', linewidth=0.5, label='0s')
     for index, distance in enumerate(distances):
         #ax.errorbar(hashrate_ratios, minority_weights_ratios_means[index], yerr=minority_weights_ratios_vars[index], label="{}s".format(distance))
-        smoothed_minority_weights_ratios_means = _moving_average(minority_weights_ratios_means[index], args.window)
-        label = args.labels[index] if len(args.labels) > index else "{}s".format(distance)
-        ax.plot(smoothed_hashrate_ratios, smoothed_minority_weights_ratios_means, label=label)
+        smoothed_minority_weights_ratios_means = list(reversed(_moving_average(minority_weights_ratios_means[index], window)))
+        color = (COLORS[colors[index]] if len(colors) > index else None)
+        label = "{}s".format(int(distance))
+        if len(colors) > index:
+            label = '{} ({}) '.format(colors[index].capitalize(), label)
+        ax.plot(smoothed_hashrate_fractions, smoothed_minority_weights_ratios_means, color=color, label=label)
 
-    plt.legend(loc='lower left', title="Distance")
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
 
-    write_plot(output_file)
+    plt.legend(loc='lower right', title="Distance", frameon=False)
+
+    write_plot(fig, output_file)

@@ -5,6 +5,7 @@ from hashwars import *
 _DEFAULT_HOURS = 6
 _DEFAULT_STEP = 60
 _DEFAULT_PREMIUM = 1.0
+_DEFAULT_STEP_RANGE = 0.1
 
 _parser = ArgumentParser(description="The launch of a blockchain.")
 _parser.add_argument("--hours", help="Number of hours to simulate", type=int, default=_DEFAULT_HOURS)
@@ -60,7 +61,7 @@ def _launch(params, mode):
     max_time = (3600 * args.hours)
 
     while current_time() < max_time:
-        advance_time(args.step)
+        advance_time(_jitter(args.step))
 
         times.append(current_time())
 
@@ -94,6 +95,9 @@ def _launch(params, mode):
         majority_miners_minority_weight,
         majority_miners_majority_weight,
     )
+
+def _jitter(step):
+    return (step * (1 - _DEFAULT_STEP_RANGE/2)) + (step * _DEFAULT_STEP_RANGE * random())
 
 def blockchain_launch_minority_weight_ratio(params):
     return _minority_weight_ratio(blockchain_launch(params))

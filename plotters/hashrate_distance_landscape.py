@@ -7,8 +7,8 @@ from numpy import mean, std, where, full, array
 from hashwars import write_plot, array_glob
 
 _DEFAULT_LEVELS = 10
-_DEFAULT_WIDTH = 8
-_DEFAULT_HEIGHT = 6
+_DEFAULT_WIDTH = 12
+_DEFAULT_HEIGHT = 8
 _DEFAULT_DPI = 100
 
 _parser = ArgumentParser(description="Plot of the hashrate/distance landscape.")
@@ -57,9 +57,9 @@ def hashrate_distance_landscape(results, output_file, argv):
     levels = (args.levels if len(args.levels) > 1 else int(args.levels[0]))
 
     ax_means = (axes if args.means_only else axes[0])
-    title = 'Fraction blockchain weight mined by minority'
-    ylabel = 'Minority Hashrate Fraction'
-    xlabel = 'Minority Distance (light seconds)'
+    title = 'Fraction blockchain weight mined by pool'
+    ylabel = 'Pool Hashrate Fraction'
+    xlabel = 'Pool Distance (light seconds)'
     if args.means_only:
         ax_means.set_title(title)
     else:
@@ -69,10 +69,12 @@ def hashrate_distance_landscape(results, output_file, argv):
     ax_means.set_ylabel(ylabel)
     means_landscape = ax_means.contourf(
         distances, 
-        1/hashrate_ratios, 
+        1/(1+hashrate_ratios),
         minority_weights_ratios_means.transpose(), 
         levels,
-        cmap="coolwarm")
+        cmap="coolwarm",
+        vmin=0,
+        vmax=1)
     means_colorbar = plt.colorbar(means_landscape, ax=ax_means, format=ticker.FuncFormatter(_format_percent))
     if args.samples:
         ax_means.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
@@ -87,16 +89,17 @@ def hashrate_distance_landscape(results, output_file, argv):
         ax_stds.set_xlabel(xlabel)
         stds_landscape = ax_stds.contourf(
             distances, 
-            1/hashrate_ratios, 
+            1/(1+hashrate_ratios), 
             minority_weights_ratios_stds.transpose(), 
             levels,
-            cmap="Greys")
+            cmap="Greys",
+            vmin=0)
         stds_colorbar = plt.colorbar(stds_landscape, ax=ax_stds)
         if args.samples:
             ax_stds.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
         ax_stds.set_yticklabels(['{:,.0%}'.format(y) for y in ax_stds.get_yticks()])
 
-    write_plot(output_file)
+    write_plot(fig, output_file)
 
 def _ignore_data(distances, hashrate_ratios, minority_weights_ratios, args):
     distances_filter = full(len(distances), True)

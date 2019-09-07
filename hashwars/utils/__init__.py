@@ -4,7 +4,6 @@ from random import choice, random
 from string import ascii_lowercase
 
 from numpy import arange, array, concatenate
-import matplotlib.pyplot as plt
 
 from .duration import Duration
 
@@ -23,12 +22,6 @@ def write_results(results, output_file):
 
 def read_results(input_file):
     return loads((input_file or stdin.buffer).read())
-
-def write_plot(output_file):
-    if output_file:
-        plt.savefig(output_file)
-    else:
-        plt.show()
 
 # 0.1,0.5,0.8,1.0,1.2 => array([0.1, 0.5, 0.8, 1.0, 1.2])
 # [1,5,1] => array([1.0, 2.0, 3.0, 4.0])

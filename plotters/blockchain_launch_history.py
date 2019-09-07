@@ -55,4 +55,4 @@ def blockchain_launch_history(results, output_file, argv):
     majority_ratio.set_ylabel('Ratio')
     majority_ratio.set_ylim(0, 1)
 
-    write_plot(output_file)
+    write_plot(fig, output_file)
