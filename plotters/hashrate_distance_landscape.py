@@ -28,15 +28,15 @@ def hashrate_distance_landscape(results, output_file, argv):
     (
         distances,
         hashrate_ratios,
-        minority_weights_ratios
+        minority_weights_fractions
     ) = results
 
     args = _parser.parse_args(argv)
 
-    distances, hashrate_ratios, minority_weights_ratios = _ignore_data(distances, hashrate_ratios, minority_weights_ratios, args)
+    distances, hashrate_ratios, minority_weights_fractions = _ignore_data(distances, hashrate_ratios, minority_weights_fractions, args)
         
-    minority_weights_ratios_means = mean(minority_weights_ratios, axis=2)
-    minority_weights_ratios_stds = std(minority_weights_ratios, axis=2)
+    minority_weights_fractions_means = mean(minority_weights_fractions, axis=2)
+    minority_weights_fractions_stds = std(minority_weights_fractions, axis=2)
 
     fig, axes = plt.subplots(
         figsize=(args.figure_width, args.figure_height),
@@ -68,7 +68,7 @@ def hashrate_distance_landscape(results, output_file, argv):
     means_landscape = ax_means.contourf(
         distances, 
         1/(1+hashrate_ratios),
-        minority_weights_ratios_means.transpose(), 
+        minority_weights_fractions_means.transpose(), 
         levels,
         cmap="coolwarm",
         vmin=0,
@@ -82,14 +82,14 @@ def hashrate_distance_landscape(results, output_file, argv):
         ax_means.set_xlabel(xlabel)
 
     smoothed_distances = moving_average(distances)
-    for target_weight_ratio in args.weights:
+    for target_weight_fraction in args.weights:
         hashrate_fractions_to_reach_weight = []
         for distance_index, distance in enumerate(distances):
             hashrate_fraction_to_reach_weight = None
-            for hashrate_ratio_index, minority_weight_ratio in enumerate(minority_weights_ratios_means[distance_index]):
+            for hashrate_ratio_index, minority_weight_fraction in enumerate(minority_weights_fractions_means[distance_index]):
                 hashrate_ratio = hashrate_ratios[hashrate_ratio_index]
                 hashrate_fraction = 1/(1+hashrate_ratio)
-                if minority_weight_ratio <= target_weight_ratio:
+                if minority_weight_fraction <= target_weight_fraction:
                     hashrate_fraction_to_reach_weight = hashrate_fraction
                     break
             if hashrate_fraction_to_reach_weight is None:
@@ -100,7 +100,7 @@ def hashrate_distance_landscape(results, output_file, argv):
         ax_means.text(
             x=(smoothed_distances[-1] * 1.01), 
             y=(smoothed_hashrate_fractions_to_reach_weight[-1] * 1), 
-            s=format_percent(target_weight_ratio, places=(1 if target_weight_ratio < 0.01 else 0)), 
+            s=format_percent(target_weight_fraction, places=(1 if target_weight_fraction < 0.01 else 0)), 
             color=COLORS['background'],
         )
         
@@ -113,7 +113,7 @@ def hashrate_distance_landscape(results, output_file, argv):
         stds_landscape = ax_stds.contourf(
             distances, 
             1/(1+hashrate_ratios), 
-            minority_weights_ratios_stds.transpose(), 
+            minority_weights_fractions_stds.transpose(), 
             levels,
             cmap="Greys",
             vmin=0)
@@ -124,7 +124,7 @@ def hashrate_distance_landscape(results, output_file, argv):
 
     write_plot(fig, output_file)
 
-def _ignore_data(distances, hashrate_ratios, minority_weights_ratios, args):
+def _ignore_data(distances, hashrate_ratios, minority_weights_fractions, args):
     distances_filter = full(len(distances), True)
     hashrate_ratios_filter = full(len(hashrate_ratios), True)
 
@@ -139,8 +139,8 @@ def _ignore_data(distances, hashrate_ratios, minority_weights_ratios, args):
 
     distances = distances[distances_filter]
     hashrate_ratios = hashrate_ratios[hashrate_ratios_filter]
-    minority_weights_ratios = array(minority_weights_ratios)
-    minority_weights_ratios = minority_weights_ratios[distances_filter]
-    minority_weights_ratios = minority_weights_ratios.transpose(1, 0, 2)[hashrate_ratios_filter].transpose(1, 0, 2)
+    minority_weights_fractions = array(minority_weights_fractions)
+    minority_weights_fractions = minority_weights_fractions[distances_filter]
+    minority_weights_fractions = minority_weights_fractions.transpose(1, 0, 2)[hashrate_ratios_filter].transpose(1, 0, 2)
 
-    return (distances, hashrate_ratios, minority_weights_ratios)
+    return (distances, hashrate_ratios, minority_weights_fractions)

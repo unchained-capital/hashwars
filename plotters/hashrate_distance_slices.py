@@ -23,14 +23,14 @@ def hashrate_distance_slices(results, output_file, argv):
     (
         distances,
         hashrate_ratios,
-        minority_weights_ratios
+        minority_weights_fractions
     ) = results
 
     args = _parser.parse_args(argv)
 
     hashrate_fractions = list(reversed(1/(1+hashrate_ratios)))
-    minority_weights_ratios_means = mean(minority_weights_ratios, axis=2)
-    minority_weights_ratios_vars = var(minority_weights_ratios, axis=2)
+    minority_weights_fractions_means = mean(minority_weights_fractions, axis=2)
+    minority_weights_fractions_vars = var(minority_weights_fractions, axis=2)
 
     fig, ax = plt.subplots(
         nrows=1, 
@@ -42,9 +42,9 @@ def hashrate_distance_slices(results, output_file, argv):
     ax.set_xlim(hashrate_fractions[0], hashrate_fractions[-1])
     if hashrate_fractions[0] < 0.5 and hashrate_fractions[-1] > 0.5:
         # ax.set_xscale('log')
-        ax.axvline(x=0.5, color='gray', linestyle='--', linewidth=0.5)
+        ax.axvline(x=0.5, color=COLORS['text'], linestyle='--', linewidth=0.5)
     ax.set_ylim(0, 1.01)
-    ax.axhline(y=0.5, color='gray', linestyle='--', linewidth=0.5)
+    ax.axhline(y=0.5, color=COLORS['text'], linestyle='--', linewidth=0.5)
 
     ax.set_xticklabels([format_percent(x) for x in ax.get_xticks()])
     ax.set_yticklabels([format_percent(y) for y in ax.get_yticks()])
@@ -52,15 +52,15 @@ def hashrate_distance_slices(results, output_file, argv):
     smoothed_hashrate_fractions = moving_average(hashrate_fractions, args.window)
 
     colors = list(args.colors)
-    # ax.plot(smoothed_hashrate_fractions, smoothed_hashrate_fractions, linestyle='--', color='gray', linewidth=0.5, label='0s')
+    # ax.plot(smoothed_hashrate_fractions, smoothed_hashrate_fractions, linestyle='--', color=COLORS['text'], linewidth=0.5, label='0s')
     for index, distance in enumerate(distances):
-        #ax.errorbar(hashrate_ratios, minority_weights_ratios_means[index], yerr=minority_weights_ratios_vars[index], label="{}s".format(distance))
-        smoothed_minority_weights_ratios_means = list(reversed(moving_average(minority_weights_ratios_means[index], args.window)))
+        #ax.errorbar(hashrate_ratios, minority_weights_fractions_means[index], yerr=minority_weights_fractions_vars[index], label="{}s".format(distance))
+        smoothed_minority_weights_fractions_means = list(reversed(moving_average(minority_weights_fractions_means[index], args.window)))
         color = (COLORS[colors[index]] if len(colors) > index else None)
         label = "{}s".format(int(distance))
         if len(colors) > index:
             label = '{} ({}) '.format(colors[index].capitalize(), label)
-        ax.plot(smoothed_hashrate_fractions, smoothed_minority_weights_ratios_means, color=color, label=label)
+        ax.plot(smoothed_hashrate_fractions, smoothed_minority_weights_fractions_means, color=color, label=label)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
