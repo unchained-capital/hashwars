@@ -34,6 +34,8 @@ def hashrate_distance_landscape(results, output_file, argv):
     args = _parser.parse_args(argv)
 
     distances, hashrate_ratios, minority_weights_fractions = _ignore_data(distances, hashrate_ratios, minority_weights_fractions, args)
+
+    hashrate_fractions = 1/(1+hashrate_ratios)
         
     minority_weights_fractions_means = mean(minority_weights_fractions, axis=2)
     minority_weights_fractions_stds = std(minority_weights_fractions, axis=2)
@@ -46,11 +48,11 @@ def hashrate_distance_landscape(results, output_file, argv):
 
     if args.samples:
         sample_distances = []
-        sample_hashrate_ratios = []
+        sample_hashrate_fractions = []
         for distance in distances:
-            for hashrate_ratio in hashrate_ratios:
+            for hashrate_fraction in hashrate_fractions:
                 sample_distances.append(distance)
-                sample_hashrate_ratios.append(hashrate_ratio)
+                sample_hashrate_fractions.append(hashrate_fraction)
 
     levels = (args.levels if len(args.levels) > 1 else int(args.levels[0]))
 
@@ -67,16 +69,16 @@ def hashrate_distance_landscape(results, output_file, argv):
     ax_means.set_ylabel(ylabel)
     means_landscape = ax_means.contourf(
         distances, 
-        1/(1+hashrate_ratios),
+        hashrate_fractions,
         minority_weights_fractions_means.transpose(), 
         levels,
         cmap="coolwarm",
         vmin=0,
-        # vmax=1/(1+hashrate_ratios[-1]),
+        # vmax=1,
     )
     means_colorbar = plt.colorbar(means_landscape, ax=ax_means, format=ticker.FuncFormatter(format_percent))
     if args.samples:
-        ax_means.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
+        ax_means.scatter(sample_distances, sample_hashrate_fractions, s=5, color=COLORS['background'], linewidths=0.01, alpha=0.25)
     ax_means.set_yticklabels(['{:,.0%}'.format(y) for y in ax_means.get_yticks()])
     if args.means_only:
         ax_means.set_xlabel(xlabel)
@@ -86,25 +88,26 @@ def hashrate_distance_landscape(results, output_file, argv):
         hashrate_fractions_to_reach_weight = []
         for distance_index, distance in enumerate(distances):
             hashrate_fraction_to_reach_weight = None
-            for hashrate_ratio_index, minority_weight_fraction in enumerate(minority_weights_fractions_means[distance_index]):
-                hashrate_ratio = hashrate_ratios[hashrate_ratio_index]
-                hashrate_fraction = 1/(1+hashrate_ratio)
+            for hashrate_fraction_index, minority_weight_fraction in enumerate(minority_weights_fractions_means[distance_index]):
+                hashrate_fraction = hashrate_fractions[hashrate_fraction_index]
                 if minority_weight_fraction <= target_weight_fraction:
                     hashrate_fraction_to_reach_weight = hashrate_fraction
                     break
             if hashrate_fraction_to_reach_weight is None:
-                hashrate_fraction_to_reach_weight = 1/(1+hashrate_ratios[-1])
+                hashrate_fraction_to_reach_weight = hashrate_fractions[-1]
             hashrate_fractions_to_reach_weight.append(hashrate_fraction_to_reach_weight)
         smoothed_hashrate_fractions_to_reach_weight = moving_average(hashrate_fractions_to_reach_weight)
         ax_means.plot(smoothed_distances, smoothed_hashrate_fractions_to_reach_weight, color=COLORS['background'], linewidth=1)
         ax_means.text(
             x=(smoothed_distances[-1] * 1.01), 
             y=(smoothed_hashrate_fractions_to_reach_weight[-1] * 1), 
-            s=format_percent(target_weight_fraction, places=(1 if target_weight_fraction < 0.01 else 0)), 
+            s=format_percent(target_weight_fraction), 
             color=COLORS['background'],
         )
-        
 
+    ax_means.set_xlim(distances[0], distances[-1])
+    ax_means.set_ylim(hashrate_fractions[-1], hashrate_fractions[0])
+        
     if not args.means_only:
         ax_stds = axes[1]
         ax_stds.set_title("Standard Deviation")
@@ -112,15 +115,17 @@ def hashrate_distance_landscape(results, output_file, argv):
         ax_stds.set_xlabel(xlabel)
         stds_landscape = ax_stds.contourf(
             distances, 
-            1/(1+hashrate_ratios), 
+            hashrate_fractions,
             minority_weights_fractions_stds.transpose(), 
             levels,
             cmap="Greys",
             vmin=0)
         stds_colorbar = plt.colorbar(stds_landscape, ax=ax_stds)
         if args.samples:
-            ax_stds.scatter(sample_distances, sample_hashrate_ratios, s=5, color='black', linewidths=0.01, alpha=0.25)
+            ax_stds.scatter(sample_distances, sample_hashrate_fractions, s=5, color=COLORS['background'], linewidths=0.01, alpha=0.25)
         ax_stds.set_yticklabels(['{:,.0%}'.format(y) for y in ax_stds.get_yticks()])
+
+        ax_stds.set_ylim(hashrate_fractions[-1], hashrate_fractions[0])
 
     write_plot(fig, output_file)
 
