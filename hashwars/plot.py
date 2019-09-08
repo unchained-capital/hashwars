@@ -8,6 +8,7 @@ COLORS = {
     'background': '#12121d',
     'white':      '#FFFFFF',
     'text':       '#efefef',
+    'earth':      '#00a600',
     'mars':       '#d94221',
     'jupiter':    '#db850d',
     'saturn':     '#f5e536',
