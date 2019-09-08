@@ -15,8 +15,8 @@ _parser = ArgumentParser(description="Plot of the hashrate/distance landscape.")
 _parser.add_argument("-s", "--samples", action='store_true', help="show points sampled")
 _parser.add_argument("-d", "--min-distance", help="ignore points closer than this distance", metavar="DISTANCE", type=float)
 _parser.add_argument("-D", "--max-distance", help="ignore points further than this distance", metavar="DISTANCE", type=float)
-_parser.add_argument("-r", "--min-ratio", help="ignore points with less than this ratio", metavar="RATIO", type=float)
-_parser.add_argument("-R", "--max-ratio", help="ignore points with more than this ratio", metavar="RATIO", type=float)
+_parser.add_argument("-f", "--min-hashrate-fraction", help="ignore points with less than this hashrat fraction", metavar="RATIO", type=float)
+_parser.add_argument("-F", "--max-hashrate-fraction", help="ignore points with more than this hashrate fraction", metavar="RATIO", type=float)
 _parser.add_argument("-m", "--means-only", help="don't plot standard deviations", action='store_true')
 _parser.add_argument("-l", "--levels", help="use this count or these explicit levels", metavar="COUNT|ARRAY", type=array_glob, default=[_DEFAULT_LEVELS])
 _parser.add_argument("-X", "--figure-width", help="figure width in inches", metavar="WIDTH", type=float, default=_DEFAULT_WIDTH)
@@ -132,10 +132,12 @@ def _ignore_data(distances, hashrate_ratios, minority_weights_fractions, args):
         distances_filter = where(distances >= args.min_distance, distances_filter, False)
     if args.max_distance:
         distances_filter = where(distances <= args.max_distance, distances_filter, False)
-    if args.min_ratio:
-        hashrate_ratios_filter = where(hashrate_ratios >= args.min_ratio, hashrate_ratios_filter, False)
-    if args.max_ratio:
-        hashrate_ratios_filter = where(hashrate_ratios <= args.max_ratio, hashrate_ratios_filter, False)
+    if args.min_hashrate_fraction:
+        max_hashrate_ratio = (1/args.min_hashrate_fraction) - 1
+        hashrate_ratios_filter = where(hashrate_ratios <= max_hashrate_ratio, hashrate_ratios_filter, False)
+    if args.max_hashrate_fraction:
+        min_hashrate_ratio = (1/args.max_hashrate_fraction) - 1
+        hashrate_ratios_filter = where(hashrate_ratios >= min_hashrate_ratio, hashrate_ratios_filter, False)
 
     distances = distances[distances_filter]
     hashrate_ratios = hashrate_ratios[hashrate_ratios_filter]
