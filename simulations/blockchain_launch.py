@@ -2,14 +2,18 @@ from argparse import ArgumentParser
 
 from hashwars import *
 
-_DEFAULT_HOURS = 6
-_DEFAULT_STEP = 60
+_DEFAULT_MIN_TIME = 21600       # in seconds (6 hours)
+_DEFAULT_TIME_DISTANCE_RATIO = 50
+
+_DEFAULT_STEPS = 500            # count
+_DEFAULT_STEP_VARIANCE = 0.1    # fraction of step size
+
 _DEFAULT_PREMIUM = 1.0
-_DEFAULT_STEP_RANGE = 0.1
 
 _parser = ArgumentParser(description="The launch of a blockchain.")
-_parser.add_argument("--hours", help="Number of hours to simulate", type=int, default=_DEFAULT_HOURS)
-_parser.add_argument("--step", help="Step length in seconds", type=int, default=_DEFAULT_STEP)
+_parser.add_argument("-t", "--min_time", help="Minimum simulation length (in seconds)", type=float, default=_DEFAULT_MIN_TIME)
+_parser.add_argument("-R", "--time_distance_ratio", help="Set simulation length to this multiple of distance", type=float, default=_DEFAULT_TIME_DISTANCE_RATIO)
+_parser.add_argument("--steps", help="Number of steps", type=int, default=_DEFAULT_STEPS)
 _parser.add_argument("--premium", help="Hash premium", type=float, default=_DEFAULT_PREMIUM)
 
 class MajorityMiners(Miners):
@@ -58,10 +62,15 @@ def _launch(params, mode):
     minority_miners_majority_weight = []
     majority_miners_minority_weight = []
     majority_miners_majority_weight = []
-    max_time = (3600 * args.hours)
 
+    max_time = (distance * args.time_distance_ratio)
+    if max_time < args.min_time: max_time = args.min_time
+
+    step = max_time / args.steps
+    steps_taken = 0
     while current_time() < max_time:
-        advance_time(_jitter(args.step))
+        advance_time(_jitter(step))
+        steps_taken += 1
 
         times.append(current_time())
 
@@ -79,10 +88,12 @@ def _launch(params, mode):
             majority_miners_minority_weight.append(0)
             majority_miners_majority_weight.append(0)
 
-    notify("FINISHED {}: H={} D={} HR={:0.4f} Minority={:0.4f}".format(
+    notify("FINISHED {}: T={:0.4f} S={:0.4f} N={} | D={:0.4f} | HR={:0.4f} | Minority={:0.4f}".format(
         run_id,
-        args.hours,
-        int(distance),
+        max_time,
+        step,
+        steps_taken,
+        distance,
         hashrate_ratio,
         minority_miners_minority_weight[-1] / (minority_miners_minority_weight[-1] + minority_miners_majority_weight[-1])
     ))
@@ -97,15 +108,15 @@ def _launch(params, mode):
     )
 
 def _jitter(step):
-    return (step * (1 - _DEFAULT_STEP_RANGE/2)) + (step * _DEFAULT_STEP_RANGE * random())
+    return (step * (1 - _DEFAULT_STEP_VARIANCE/2)) + (step * _DEFAULT_STEP_VARIANCE * random())
 
-def blockchain_launch_minority_weight_ratio(params):
-    return _minority_weight_ratio(blockchain_launch(params))
+def blockchain_launch_minority_weight_fraction(params):
+    return _minority_weight_fraction(blockchain_launch(params))
 
-def miner_launch_minority_weight_ratio(params):
-    return _minority_weight_ratio(miner_launch(params))
+def miner_launch_minority_weight_fraction(params):
+    return _minority_weight_fraction(miner_launch(params))
 
-def _minority_weight_ratio(results):
+def _minority_weight_fraction(results):
     (distance,
      hashrate_ratio,
      times, 
@@ -114,5 +125,5 @@ def _minority_weight_ratio(results):
      majority_miners_minority_weight,
      majority_miners_majority_weight
     ) = results
-    return (distance, hashrate_ratio, minority_miners_minority_weight[-1] / (minority_miners_minority_weight[-1] + minority_miners_majority_weight[-1]))
-
+    minority_weight_fraction = minority_miners_minority_weight[-1] / (minority_miners_minority_weight[-1] + minority_miners_majority_weight[-1])
+    return (distance, hashrate_ratio, minority_weight_fraction)
