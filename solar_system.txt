@@ -1,7 +1,9 @@
 Earth-Moon	405k km		1.3 s		furthest
 Earth-L1	14.9M km	50 s		-
 blocktime	180M km		600 s		-
+Earth-Mars	56M km		186 s		closest
 Earth-Mars	225M km		720 s		average
+Earth-Mars	401M km		1337 s		furthest
 Earth-Mars	401M km		1337 s		furthest
 Earth-Jupiter	968M km		3229 s		furthest
 Earth-Saturn	1.7B km		5670 s		furthest
