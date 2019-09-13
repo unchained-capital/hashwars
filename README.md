@@ -16,6 +16,8 @@ simulators](https://github.com/citp/mining_simulator), some [even in
 Python](https://github.com/kennethgoodman/mining-simulator), but they
 are not intended for esoteric purposes such as ours.
 
+This simulator was used to create the plots in the ["First Law of Bitcoin Astronomy"](https://www.unchained-capital.com/blog/first-law-of-bitcoin-astronomy/) blog post by [Unchained Capital](https://www.unchained-capital.com).
+
 ## Quickstart
 
 ```
