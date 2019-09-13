@@ -5,7 +5,7 @@ from numpy import sqrt, convolve, ones
 from .utils import notify, read_results
 
 COLORS = {
-    'background': '#12121d',
+    'background': '#12121D',
     'white':      '#FFFFFF',
     'text':       '#efefef',
     'earth':      '#00a600',
@@ -14,7 +14,7 @@ COLORS = {
     'saturn':     '#f5e536',
     'uranus':     '#d0edf0',
     'neptune':    '#4b74ed',
-    'pluto':      '#540d03',
+    'pluto':      '#f533eb',
 }
 
 rcParams['figure.facecolor'] = COLORS['background']
